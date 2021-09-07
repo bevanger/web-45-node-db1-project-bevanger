@@ -1,16 +1,27 @@
 
+const { checkAccountPayload, checkAccountNameUnique, checkAccountId} = require('./accounts-middleware');
+const Accounts = require('./accounts-model');
+
 const router = require('express').Router()
 
 router.get('/', (req, res, next) => {
-  res.json('returns an array of accounts (or an empty array if there aren't any)')
+  Accounts.getAll()
+    .then(accounts => {
+      res.status(200).json(accounts)
+    })
+    .catch(next)
 });
 
-router.get('/:id', (req, res, next) => {
-  res.json(' returns an account by the given id')
+router.get('/:id', checkAccountId, (req, res, next) => {
+  res.status(200).json(req.account)
 });
 
-router.post('/', (req, res, next) => {
-  res.json('returns the created account. Leading or trailing whitespace on budget name should be trimmed before saving to db.')
+router.post('/', checkAccountPayload, checkAccountNameUnique, (req, res, next) => {
+  Accounts.create(req.body)
+    .then(newAccount => {
+      res.status(201).json(newAccount)
+    })
+    .catch(next)
 });
 
 router.put('/:id', (req, res, next) => {
